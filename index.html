@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Print Template Generator - Cetak Foto Mudah</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @media print {
+      .no-print { display: none !important; }
+      .print-area { 
+        width: 100% !important; 
+        height: auto !important;
+        page-break-after: always;
+      }
+    }
+    .template-box {
+      background: white;
+      border: 1px dashed #666;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-blue-900 via-purple-900 to-black min-h-screen text-white">
+  
+  <!-- Main App -->
+  <div class="container mx-auto px-4 py-8 no-print">
+    <h1 class="text-4xl font-bold text-center mb-2">🖼️ Print Template Generator</h1>
+    <p class="text-center text-gray-300 mb-8">Masukkan ukuran foto, langsung jadi template siap print!</p>
+    
+    <!-- Input Section -->
+    <div class="max-w-md mx-auto bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+      <div class="mb-4">
+        <label class="block text-sm font-medium mb-2">Pilih Ukuran Foto</label>
+        <select id="sizePreset" class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg" onchange="applyPreset()">
+          <option value="custom">Custom (Manual)</option>
+          <option value="2x3">2 x 3 inch (5 x 7.6 cm)</option>
+          <option value="3x4">3 x 4 inch (7.6 x 10.2 cm)</option>
+          <option value="4x6" selected>4 x 6 inch (10 x 15 cm)</option>
+          <option value="5x7">5 x 7 inch (12.7 x 17.8 cm)</option>
+          <option value="8x10">8 x 10 inch (20 x 25 cm)</option>
+          <option value="A4">A4 (210 x 297 mm)</option>
+          <option value="3R">3R (89 x 127 mm)</option>
+          <option value="4R">4R (102 x 152 mm)</option>
+          <option value="5R">5R (127 x 178 mm)</option>
+          <option value="8R">8R (203 x 254 mm)</option>
+        </select>
+      </div>
+      
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <label class="block text-sm font-medium mb-2">Lebar (cm)</label>
+          <input type="number" id="width" value="10" step="0.1" class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-2">Tinggi (cm)</label>
+          <input type="number" id="height" value="15" step="0.1" class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg">
+        </div>
+      </div>
+      
+      <div class="mb-4">
+        <label class="block text-sm font-medium mb-2">Jumlah Foto per Sheet</label>
+        <input type="number" id="count" value="1" min="1" max="20" class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg">
+      </div>
+      
+      <div class="mb-4">
+        <label class="block text-sm font-medium mb-2">Margin (cm)</label>
+        <input type="number" id="margin" value="0.5" step="0.1" min="0" class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg">
+      </div>
+      
+      <button onclick="generateTemplate()" class="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg font-bold hover:opacity-90">
+        Generate Template
+      </button>
+      
+      <button onclick="window.print()" class="w-full mt-3 py-3 bg-green-600 rounded-lg font-bold hover:opacity-90">
+        🖨️ Print Sekarang
+      </button>
+    </div>
+    
+    <!-- Instructions -->
+    <div class="max-w-md mx-auto mt-6 text-sm text-gray-400">
+      <h3 class="font-bold text-white mb-2">Cara Pakai:</h3>
+      <ol class="list-decimal list-inside space-y-1">
+        <li>Pilih ukuran foto atau masukkan custom</li>
+        <li>Tentukan jumlah foto per sheet</li>
+        <li>Klik "Generate Template"</li>
+        <li>Klik "Print Sekarang" atau tekan Ctrl+P</li>
+        <li>Pilih printer dan kertas yang sesuai</li>
+      </ol>
+    </div>
+  </div>
+  
+  <!-- Print Template -->
+  <div id="printArea" class="print-area p-8 hidden">
+    <div id="templateContainer" class="flex flex-wrap gap-2 justify-center items-start">
+    </div>
+  </div>
+  
+  <script>
+    const presets = {
+      '2x3': { w: 5, h: 7.6 },
+      '3x4': { w: 7.6, h: 10.2 },
+      '4x6': { w: 10, h: 15 },
+      '5x7': { w: 12.7, h: 17.8 },
+      '8x10': { w: 20, h: 25 },
+      'A4': { w: 21, h: 29.7 },
+      '3R': { w: 8.9, h: 12.7 },
+      '4R': { w: 10.2, h: 15.2 },
+      '5R': { w: 12.7, h: 17.8 },
+      '8R': { w: 20.3, h: 25.4 }
+    };
+    
+    function applyPreset() {
+      const preset = document.getElementById('sizePreset').value;
+      if (presets[preset]) {
+        document.getElementById('width').value = presets[preset].w;
+        document.getElementById('height').value = presets[preset].h;
+      }
+    }
+    
+    function generateTemplate() {
+      const width = parseFloat(document.getElementById('width').value);
+      const height = parseFloat(document.getElementById('height').value);
+      const count = parseInt(document.getElementById('count').value);
+      const margin = parseFloat(document.getElementById('margin').value);
+      
+      const container = document.getElementById('templateContainer');
+      container.innerHTML = '';
+      
+      // Convert cm to mm for display (1cm = 3.78px at 96dpi for screen, but we use mm for print)
+      const widthMm = width * 10;
+      const heightMm = height * 10;
+      const marginMm = margin * 10;
+      
+      for (let i = 0; i < count; i++) {
+        const box = document.createElement('div');
+        box.className = 'template-box flex flex-col items-center justify-center';
+        box.style.width = widthMm + 'mm';
+        box.style.height = heightMm + 'mm';
+        box.style.minWidth = widthMm + 'mm';
+        box.style.minHeight = heightMm + 'mm';
+        box.style.margin = marginMm + 'mm';
+        box.style.padding = '10mm';
+        
+        box.innerHTML = `
+          <div class="text-center text-black">
+            <div class="text-4xl font-bold mb-2">📷</div>
+            <div class="text-sm">${width} x ${height} cm</div>
+            <div class="text-xs text-gray-500">${i + 1}</div>
+          </div>
+          <div class="absolute inset-0 border-2 border-dashed border-gray-300"></div>
+        `;
+        
+        container.appendChild(box);
+      }
+      
+      document.getElementById('printArea').classList.remove('hidden');
+    }
+    
+    // Initialize
+    applyPreset();
+  </script>
+</body>
+</html>
